@@ -56,13 +56,18 @@ function check_previous_submit() {
     fi
 }
 
-
 function set_partition() {
+    if [ "$PARTITION" == "gpu" ]; then
+        if [ -z "$GPUS" ]; then
+            GPUS=1
+        fi
+        echo "== Requesting ${GPUS} GPU(s) =="
+        PARTITION="${PARTITION} --gres=gpu:${GPUS}"
+    fi
 
-    if [ "${PARTITION}" == "gpu" ];
-    then
-        echo "== Requesting GPU =="
-        PARTITION="${PARTITION} --gres gpu:1"
+    if [ -n "$CPUS" ]; then
+        echo "== Requesting ${CPUS} CPU(s) =="
+        PARTITION="${PARTITION} --cpus-per-task=${CPUS}"
     fi
 }
 
