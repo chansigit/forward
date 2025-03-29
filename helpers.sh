@@ -68,7 +68,8 @@ function set_partition() {
 
 function get_machine() {
 
-    TIMEOUT=${TIMEOUT-1}
+    #TIMEOUT=${TIMEOUT-1}
+    TIMEOUT=8 # 先等8s再说，哪有那么快能分配到的
     ATTEMPT=0
 
     echo
@@ -92,7 +93,14 @@ function get_machine() {
         sleep $TIMEOUT
 
         ATTEMPT=$(( ATTEMPT + 1 ))
-        TIMEOUT=$(( TIMEOUT * 2 ))
+        
+        # Cap the timeout at 32 seconds
+        if [ "$TIMEOUT" -lt 32 ]; then
+            TIMEOUT=$(( TIMEOUT * 2 ))
+            if [ "$TIMEOUT" -gt 32 ]; then
+                TIMEOUT=32
+            fi
+        fi
 
     done
 
