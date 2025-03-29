@@ -17,14 +17,55 @@ fi
 # 加载配置
 . params.sh
 
+# -----------------------------------------------------------------------------
+# 定义帮助信息
+# -----------------------------------------------------------------------------
+function show_help() {
+  echo "Usage: bash start.sh JOB_NAME [options]"
+  echo ""
+  echo "Options:"
+  echo "  -p PARTITION    Slurm partition to use (e.g., gpu, normal, owners)"
+  echo "                  → 'gpu' will trigger GPU allocation"
+  echo ""
+  echo "  -g GPUS         Number of GPUs to request (e.g., 1, 2)"
+  echo "                  → Only meaningful when -p gpu"
+  echo ""
+  echo "  -c CPUS         Number of CPUs to request (e.g., 4, 8, 16)"
+  echo "  -m MEM          Memory to allocate (e.g., 16G, 32G)"
+  echo "  -t TIME         Max run time (e.g., 02:00:00 for 2 hours)"
+  echo "  -f PORT         Local port to forward (e.g., 8888)"
+  echo "  -h              Show this help message and exit"
+  echo ""
+  echo "Example:"
+  echo "  bash start.sh py12torch2 -p xiaojie -g 2 -c 32 -m 32G -t 04:00:00 -f 17173"
+  echo ""
+  exit 0
+}
 
 # -----------------------------------------------------------------------------
 # 配置参数检查和辅助函数加载
 # -----------------------------------------------------------------------------
+# 解析命令行参数（getopts 放在这里）
+while getopts ":p:m:t:f:c:g:h" opt; do
+  case $opt in
+    p) PARTITION="$OPTARG" ;;
+    m) MEM="$OPTARG" ;;
+    t) TIME="$OPTARG" ;;
+    f) PORT="$OPTARG" ;;
+    c) CPUS="$OPTARG" ;;
+    g) GPUS="$OPTARG" ;;
+    h) show_help ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; show_help ;;
+    :) echo "Option -$OPTARG requires an argument." >&2; show_help ;;
+  esac
+done
+shift $((OPTIND - 1))  # 移除已处理参数，保留 JOB_NAME 等位置参数
+
 # 确保调用脚本时至少提供了一个 sbatch job 名。
 if [ "$#" -eq 0 ]
 then
     echo "Need to give name of sbatch job to run!"
+    show_help
     exit
 fi
 
